@@ -1,0 +1,11 @@
+---
+- name: show servers ips
+  hosts: pvevms
+  remote_user: root
+  tasks:
+    - name: "Show Network Interfaces"
+      command: ip a
+      register: details
+    - name: "Get Interfaces details"
+      debug:
+        msg: "{{ details.stdout }}"

@@ -1,0 +1,133 @@
+---
+- name: "Install basic tools - tmux, zsh, vim with plugins" 
+  hosts: pvevms
+  remote_user: root
+  gather_facts: yes
+  become: no
+  vars:
+    vim_dir: "~/.vim"
+    vimrc: "~/.vimrc"
+    the_user: "{{ ansible_user_id }}"
+
+  tasks:
+    - name: "Update packages and upgrade"
+      apt:
+        update_cache: true
+        upgrade: dist
+        force_apt_get: true
+
+    - name: "Install htop"
+      ansible.builtin.apt:
+        name: htop
+        state: latest
+
+    - name: "Install git"
+      apt:
+        name: git
+        state: latest
+
+    - name: "Clone git repo Tomkin64/.dotfiles.git"
+      git:
+        repo: https://github.com/Tomkin64/.dotfiles.git
+        dest: ~/.dotfiles
+        force: yes 
+
+    - name: "Install cURL"
+      apt:
+        name: curl
+        state: latest
+
+    - name: "Install lnav"
+      apt:
+        name: lnav
+        state: latest
+
+    - name: "Install strace"
+      apt:
+        name: strace
+        state: latest
+
+    - name: "Install tmux"
+      apt:
+        name: tmux
+        state: latest
+
+    - name: "Config tmux"
+      file:
+        src: "~/.dotfiles/tmux-conf"
+        dest: "~/.tmux.conf"
+        state: link
+
+    - name: "Install zsh"
+      apt:
+        name: zsh
+        state: latest
+
+    - name: "Config zsh"
+      file:
+        src: "~/.dotfiles/zshrc"
+        dest: "~/.zshrc"
+        state: link
+
+    - name: "Create directory ~/.cache/zsh"
+      file:
+        path: ~/.cache/zsh
+        state: directory
+
+    - name: "Create zsh history file"
+      command: touch ~/.cache/zsh/history
+      args:
+        creates: ~/.cache/zsh/history
+
+    - name: "Install VIM"
+      apt:
+        name: vim
+        state: latest
+
+    - name: "Ensure .vim/{autoload,bundle} directory exists"
+      file:
+        path: "{{ item }}"
+        state: directory
+        recurse: no
+        mode: 0750
+      loop:
+        - "{{ vim_dir }}"
+        - "{{ vim_dir }}/autoload"
+        - "{{ vim_dir }}/plugged"
+
+    - name: "Install vim-plug"
+      command: "curl -fLo ~/.vim/autoload/plug.vim --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+      args:
+        creates: ~/.vim/autoload/plug.vim
+
+    - name: "Install vim plugins"
+      git:
+        dest: "{{ vim_dir }}/plugged/{{ item.name }}"
+        repo: "{{ item.url }}"
+        clone: yes
+        update: yes
+        recursive: no
+      loop:
+        - name: vim-airline
+          url: https://github.com/vim-airline/vim-airline
+        - name: SearchComplete
+          url: https://github.com/vim-scripts/SearchComplete
+        - name: rainbow_parentheses
+          url: https://github.com/junegunn/rainbow_parentheses.vim
+        - name: vim-syncastic
+          url: https://github.com/vim-syntastic/syntastic
+        - name: vim-colorschemes
+          url: https://github.com/flazz/vim-colorschemes
+
+    - name: "Create symlink for vim-install"
+      file:
+        src: ~/.dotfiles/vimrc
+        dest: ~/.vimrc
+        state: link
+
+    - name: "Change user shell to zsh"
+      become: yes
+      user:
+        name: "{{ the_user }}"
+        shell: /usr/bin/zsh
+

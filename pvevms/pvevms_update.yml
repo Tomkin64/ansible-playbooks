@@ -1,0 +1,10 @@
+---
+- name: show servers ips
+  hosts: pvevms
+  remote_user: root
+  tasks:
+    - name: "Update packages and upgrade"
+      apt:
+        update_cache: true
+        upgrade: dist
+        force_apt_get: true
