@@ -1,0 +1,22 @@
+---
+- name: Update PiHole
+  hosts: pihole2
+  remote_user: root
+  tasks:
+    - name: "Update and upgrade packages"
+      apt:
+        update_cache: true
+        upgrade: dist
+        force_apt_get: true
+    - name: "Update PiHole"
+      command: pihole -up
+      register: updatedetails
+    - name: "Get Update details"
+      debug:
+        msg: "{{ updatedetails.stdout }}"
+    - name: "Update Gravity"
+      command: pihole updateGravity
+      register: gravitydetails
+    - name: "Get Gravity details"
+      debug:
+        msg: "{{ gravitydetails.stdout }}"
