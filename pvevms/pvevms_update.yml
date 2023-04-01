@@ -1,9 +1,9 @@
 ---
-- name: show servers ips
+- name: update and upgrade
   hosts: pvevms
   remote_user: root
   tasks:
-    - name: "Update packages and upgrade"
+    - name: "Update and upgrade"
       apt:
         update_cache: true
         upgrade: dist
